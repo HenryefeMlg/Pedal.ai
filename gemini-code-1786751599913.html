@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedal AI - Gerçek Üretken YZ</title>
+  
+  <!-- TensorFlow.js Kütüphanesi -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #121214;
+      color: #e1e1e6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 500px;
+      height: 600px;
+      background-color: #202024;
+      border-radius: 10px;
+      border: 1px solid #2e2e38;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .chat-header {
+      background-color: #18181b;
+      padding: 15px 20px;
+      border-bottom: 1px solid #2e2e38;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #00e676;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #ff9800;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-dot.ready {
+      background-color: #00e676;
+    }
+
+    .header-logo {
+      height: 35px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .user-message {
+      align-self: flex-end;
+      background-color: #2962ff;
+      color: #fff;
+      border-bottom-right-radius: 2px;
+    }
+
+    .ai-message {
+      align-self: flex-start;
+      background-color: #2e2e38;
+      color: #e1e1e6;
+      border-bottom-left-radius: 2px;
+    }
+
+    .system-status {
+      align-self: center;
+      font-size: 0.8rem;
+      color: #888;
+      background-color: #18181b;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    /* 3 Top Animasyonu */
+    .typing-indicator {
+      align-self: flex-start;
+      background-color: #2e2e38;
+      padding: 12px 18px;
+      border-radius: 8px;
+      border-bottom-left-radius: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #00e676;
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    .chat-input-area {
+      padding: 15px;
+      background-color: #18181b;
+      border-top: 1px solid #2e2e38;
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      background-color: #121214;
+      border: 1px solid #2e2e38;
+      color: #fff;
+      padding: 12px 15px;
+      border-radius: 6px;
+      outline: none;
+      font-size: 0.95rem;
+    }
+
+    input[type="text"]:focus {
+      border-color: #00e676;
+    }
+
+    button {
+      background-color: #00e676;
+      color: #121214;
+      border: none;
+      padding: 0 20px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover { background-color: #00c853; }
+    button:disabled {
+      background-color: #2e2e38;
+      color: #777;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="header-left">
+        <span class="status-dot" id="statusDot"></span>
+        Pedal AI (v1.0)
+      </div>
+      <img src="shimano-pd-gr500-platform-pedal-civili-bmx-dh-epdgr500l-kcm67744903-1-d6b1b3f743f24c92a40179cf26667d85-removebg-preview.png" alt="Pedal AI Logo" class="header-logo">
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+      <div class="system-status" id="systemStatus">Harf Üreteci Eğitiliyor...</div>
+      <div class="message ai-message">Ne var ne istiyon? Sıfırdan harf harf kelime üreteceğim.</div>
+    </div>
+
+    <div class="chat-input-area">
+      <input type="text" id="userInput" placeholder="Bir şeyler yaz..." autocomplete="off" disabled>
+      <button id="sendBtn" onclick="sendMessage()" disabled>Gönder</button>
+    </div>
+  </div>
+
+  <!-- YZ Motorumuz -->
+  <script src="script.js"></script>
+
+</body>
+</html>

@@ -107,7 +107,6 @@
       "ben panelciyim kork benden", "banane"
     ];
 
-    let isWaiting = false;
     let currentTypingIndicator = null;
 
     function getSmartResponse(userText) {
@@ -142,17 +141,12 @@
     }
 
     function sendMessage() {
-      if (isWaiting) return;
-
       const input = document.getElementById("userInput");
       const messageText = input.value.trim();
       if (messageText === "") return;
 
       appendMessage(messageText, "user-message");
       input.value = "";
-      
-      isWaiting = true;
-      document.getElementById("sendBtn").disabled = true;
 
       sessionRef.child("messages").push({
         sender: "user",
@@ -160,43 +154,52 @@
         timestamp: Date.now()
       });
 
-      if (!isBotPaused) {
-        currentTypingIndicator = createTypingIndicator();
-        const messagesContainer = document.getElementById("chatMessages");
-        messagesContainer.appendChild(currentTypingIndicator);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      // Bот kapalıysa otomatik yanıt sürecini hiç başlatma
+      if (isBotPaused) return;
 
-        const autoReplyTimeout = setTimeout(() => {
-          if (isWaiting && !isBotPaused) {
-            const autoResponse = getSmartResponse(messageText);
-            sendAIResponse(autoResponse);
-          }
-        }, 3000);
+      currentTypingIndicator = createTypingIndicator();
+      const messagesContainer = document.getElementById("chatMessages");
+      messagesContainer.appendChild(currentTypingIndicator);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-        window.currentAutoReplyTimeout = autoReplyTimeout;
+      if (window.currentAutoReplyTimeout) {
+        clearTimeout(window.currentAutoReplyTimeout);
       }
+
+      window.currentAutoReplyTimeout = setTimeout(() => {
+        // Bekleme süresi dolduğunda tekrar kontrol et
+        if (!isBotPaused) {
+          const autoResponse = getSmartResponse(messageText);
+          showAIResponse(autoResponse);
+          sessionRef.child("messages").push({
+            sender: "ai",
+            text: autoResponse,
+            timestamp: Date.now()
+          });
+        } else if (currentTypingIndicator) {
+          currentTypingIndicator.remove();
+          currentTypingIndicator = null;
+        }
+      }, 3000);
     }
 
-    function sendAIResponse(responseText) {
+    function showAIResponse(responseText) {
       if (currentTypingIndicator) {
         currentTypingIndicator.remove();
         currentTypingIndicator = null;
       }
-
       appendMessage(responseText, "ai-message");
       playAudioForResponse(responseText);
-
-      isWaiting = false;
-      document.getElementById("sendBtn").disabled = false;
     }
 
+    // Panelden veya veritabanından gelen tüm 'ai' ve 'admin_manual' mesajlarını canlı olarak dinle
     sessionRef.child("messages").on("child_added", (snapshot) => {
       const msg = snapshot.val();
       if (msg.sender === "admin_manual") {
         if (window.currentAutoReplyTimeout) {
           clearTimeout(window.currentAutoReplyTimeout);
         }
-        sendAIResponse(msg.text);
+        showAIResponse(msg.text);
       }
     });
 

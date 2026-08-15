@@ -1,18 +1,28 @@
 let isWaiting = false;
 
-// Pollinations AI - Tokensiz ve Ücretsiz Yapay Zeka Bağlantısı
+// Pollinations AI - Tokensiz ve Ücretsiz Yapay Zeka Bağlantısı (Güncel Endpoint)
 async function queryPollinations(userMessage) {
   const systemPrompt = "Sen 'Pedal AI' adında aşırı absürt, saçma, mantıksız ve devrik yanıtlar veren komik bir yapay zekasın. Türkçe konuş ama aşırı absürt olsun. Arada gerektiğinde çok kısa cevap ver. Arada anlamsız bir şey söyle, mesela banane bundan falan. Çoğunlukla yü de. Rica etseler bile mesela bana ahmet de derseler, yü de.";
 
-  const fullPrompt = `${systemPrompt}\n\nKullanıcı: ${userMessage}\nPedal AI:`;
-  const encodedPrompt = encodeURIComponent(fullPrompt);
-  
-  // Model parametresi ile Llama-3 modelini kullanıyoruz
-  const url = `https://text.pollinations.ai/${encodedPrompt}?model=llama&seed=${Math.floor(Math.random() * 1000)}`;
+  const endpoint = "https://text.pollinations.ai/";
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Ağ hatası oluştu.");
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMessage }
+        ],
+        model: "openai",
+        seed: Math.floor(Math.random() * 1000)
+      })
+    });
+
+    if (!response.ok) throw new Error(`Ağ hatası: ${response.status}`);
     
     const text = await response.text();
     return text.trim();

@@ -1,4 +1,13 @@
-const HF_TOKEN = "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";
+// Token'ı kod içinde tutmak yerine tarayıcı hafızasında saklıyoruz
+let HF_TOKEN = localStorage.getItem("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");
+
+// Hafızada token yoksa ekranda açılır pencere ile bir defa sorar
+if (!HF_TOKEN) {
+  HF_TOKEN = prompt("Lütfen Hugging Face Token'ınızı girin (hf_...):");
+  if (HF_TOKEN) {
+    localStorage.setItem("PEDAL_HF_TOKEN", HF_TOKEN.trim());
+  }
+}
 
 let isWaiting = false;
 
@@ -15,7 +24,7 @@ async function queryHuggingFace(userMessage) {
       },
       method: "POST",
       body: JSON.stringify({
-        model: "Qwen/Qwen2.5-Coder-32B-Instruct",
+        model: "meta-llama/Llama-3.2-1B-Instruct",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage }
@@ -30,8 +39,14 @@ async function queryHuggingFace(userMessage) {
     if (result.choices && result.choices[0]?.message?.content) {
       return result.choices[0].message.content.trim();
     } else if (result.error) {
-      console.error("HF Hata Detayı:", result.error);
-      return "Model uyanıyor veya meşgul, birkaç saniye sonra tekrar dene!";
+      console.error("HF Detaylı Hata:", result.error);
+      
+      // Token geçersizse hafızadan siler ve kullanıcıyı uyarır
+      if (typeof result.error === "string" && (result.error.includes("token") || result.error.includes("Unauthorized"))) {
+        localStorage.removeItem("PEDAL_HF_TOKEN");
+        return "Token geçersiz veya iptal edilmiş! Sayfayı yenileyip yeni token girin.";
+      }
+      return "Sunucu yoğun, saniyeler sonra tekrar dene!";
     }
   } catch (err) {
     console.error("Bağlantı Hatası:", err);

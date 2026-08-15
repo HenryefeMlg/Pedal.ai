@@ -105,13 +105,8 @@
       animation: bounce 1.4s infinite ease-in-out both;
     }
 
-    .typing-dot:nth-child(1) {
-      animation-delay: -0.32s;
-    }
-
-    .typing-dot:nth-child(2) {
-      animation-delay: -0.16s;
-    }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
 
     @keyframes bounce {
       0%, 80%, 100% { 
@@ -158,10 +153,7 @@
       transition: background 0.2s;
     }
 
-    button:hover {
-      background-color: #00c853;
-    }
-
+    button:hover { background-color: #00c853; }
     button:disabled {
       background-color: #2e2e38;
       color: #777;
@@ -183,23 +175,20 @@
 
     <div class="chat-input-area">
       <input type="text" id="userInput" placeholder="Bir şeyler yaz..." autocomplete="off">
-      <button id="sendBtn" onclick="sendMessage()">Gönder</button>
+      <button id="sendBtn">Gönder</button>
     </div>
   </div>
 
   <script>
-    // 1. Belirli anahtar kelimelere eşleşen özel yanıtlar
     const keywordResponses = [
-      { keywords: ["selam", "merhaba", "sa", "hey", "alo"], answers: ["yü", "alo", "ne var", "noldu", "🗿", "🕋ﷲ﷽ 🕋"]},
-      { keywords: ["nasılsın", "naber", "nettn", ""], answers: ["iyiyim", "annen", "konuşma", "🕋 ﷲ ﷽"},
+      { keywords: ["selam", "merhaba", "sa", "hey", "alo"], answers: ["yü", "alo", "ne var", "noldu", "🗿", "🕋ﷲ﷽ 🕋"] },
+      { keywords: ["nasılsın", "naber", "nettn"], answers: ["iyiyim", "annen", "konuşma", "🕋 ﷲ ﷽"] },
       { keywords: ["kimsin", "ismin ne", "adın ne"], answers: ["geyb nevıl", "pedal AI"] },
       { keywords: ["nerdesin", "nerelisin"], answers: ["ankara mamak", "erzurum", "Türk bayrağı"] },
-      { keywords: ["neden", "niye", "why"], answers: ["çünkü malsın", "canım istedi diye diye 𝐒𝐈𝐆𝐌𝐀 🤫🧏‍♂️", "sanane"] }
+      { keywords: ["neden", "niye", "why"], answers: ["çünkü malsın", "canım istedi diye diye 𝐒𝐈𝐆𝐌𝐀 🤫🧏‍♂️", "sanane"] },
       { keywords: ["mal", "sg", "oe", "yü", "bırbır", "brbr"], answers: ["sg oç", "oe", "piç"] }
-     
     ];
 
-    // 2. Özel bir kelime yakalanamazsa verilecek genel rastgele cevaplar
     const defaultResponses = [
       "yü", "banane olm", "sg", "erzurum", "alo", "evet", "hayır", 
       "szdf ıbyg", "pipi", "0.2 0.6 birinde ses yok", "ankara mamak geldi ordan döndü", 
@@ -209,18 +198,15 @@
 
     let isWaiting = false;
 
-    // Kullanıcının yazdığı metne göre yanıt seçen fonksiyon
     function getSmartResponse(userText) {
       const lowerInput = userText.toLowerCase().trim();
 
-      // İstemde özel kelimeler var mı kontrol et
       for (const item of keywordResponses) {
-        if (item.keywords.some(kw => lowerInput.includes(kw))) {
+        if (item.keywords.some(kw => kw.length > 0 && lowerInput.includes(kw))) {
           return item.answers[Math.floor(Math.random() * item.answers.length)];
         }
       }
 
-      // Eşleşme yoksa rastgele havuzdan seç
       return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
     }
 
@@ -236,7 +222,8 @@
       input.value = "";
       
       isWaiting = true;
-      document.getElementById("sendBtn").disabled = true;
+      const sendBtn = document.getElementById("sendBtn");
+      sendBtn.disabled = true;
 
       const typingIndicator = createTypingIndicator();
       const messagesContainer = document.getElementById("chatMessages");
@@ -249,8 +236,8 @@
         appendMessage(responseText, "ai-message");
         
         isWaiting = false;
-        document.getElementById("sendBtn").disabled = false;
-      }, 1200);
+        sendBtn.disabled = false;
+      }, 1000);
     }
 
     function createTypingIndicator() {
@@ -276,8 +263,12 @@
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    document.getElementById("userInput").addEventListener("keypress", function(e) {
+    // Olay Dinleyicileri (Event Listeners)
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+
+    document.getElementById("userInput").addEventListener("keydown", function(e) {
       if (e.key === "Enter") {
+        e.preventDefault();
         sendMessage();
       }
     });

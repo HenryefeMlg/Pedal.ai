@@ -2,104 +2,52 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Sistem Kontrol Paneli</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pedal AI</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-    body { background: #121214; color: #fff; display: flex; height: 100vh; overflow: hidden; }
-    .sidebar { width: 300px; background: #18181b; border-right: 1px solid #2e2e38; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; }
-    .sidebar h2 { font-size: 1.1rem; color: #00e676; margin-bottom: 15px; }
-    .clear-btn { background: #ff9800; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-    .clear-btn:hover { background: #f57c00; }
-    .user-list { flex: 1; overflow-y: auto; }
-    .user-card { padding: 10px; background: #202024; border: 1px solid #2e2e38; border-radius: 6px; margin-bottom: 8px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
-    .user-card.active { border-color: #00e676; background: #2e2e38; }
-    .user-info { display: flex; flex-direction: column; gap: 3px; }
-    .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
-    .status-badge.online { background: #00e676; color: #121214; }
-    .status-badge.away { background: #ffb300; color: #121214; }
-    .status-badge.offline { background: #ff3366; color: #fff; }
-    .main { flex: 1; display: flex; flex-direction: column; background: #202024; }
-    .chat-header { padding: 15px; background: #18181b; border-bottom: 1px solid #2e2e38; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-    .toggle-bot-btn { padding: 10px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; background: #ff3366; color: #fff; font-size: 0.9rem; transition: 0.2s; }
-    .toggle-bot-btn.paused { background: #00e676; color: #121214; }
-    .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    .msg { padding: 8px 12px; border-radius: 6px; max-width: 70%; font-size: 0.9rem; }
-    .msg img { max-width: 250px; border-radius: 6px; display: block; margin-top: 5px; }
-    .msg.user { background: #2962ff; align-self: flex-start; }
-    .msg.ai { background: #2e2e38; align-self: flex-end; border: 1px solid #00e676; }
-    .msg.error-banner { background: #2d0000; border: 1px solid #ff3366; color: #ff6688; align-self: center; max-width: 90%; font-family: monospace; }
-    .input-area { padding: 15px; background: #18181b; display: flex; gap: 8px; border-top: 1px solid #2e2e38; align-items: center; flex-wrap: wrap; }
-    input[type="text"] { flex: 1; background: #121214; border: 1px solid #2e2e38; color: #fff; padding: 10px; border-radius: 4px; }
-    .btn { background: #2e2e38; color: #fff; border: 1px solid #3e3e4a; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-    .btn:hover { background: #3e3e4a; }
-    .btn-danger { background: #ff3366; color: #fff; border: none; }
-    .btn-danger:hover { background: #d0003c; }
-    button.send { background: #00e676; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; color: #121214; }
-
-    /* Modal & Fırça Menüsü */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 1000; }
-    .modal-box { background: #18181b; border: 1px solid #00e676; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 0 20px rgba(0, 230, 118, 0.3); }
-    .brush-selector { display: flex; gap: 8px; align-items: center; }
-    .brush-btn { background: #202024; border: 1px solid #2e2e38; color: #ccc; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
-    .brush-btn.active { border-color: #00e676; color: #00e676; background: #2e2e38; font-weight: bold; }
-    .canvas-container { position: relative; background: #0a0a0c; border: 1px solid #2e2e38; border-radius: 6px; }
-    canvas { cursor: crosshair; display: block; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #121214; color: #e1e1e6; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .chat-container { width: 100%; max-width: 500px; height: 600px; background-color: #202024; border-radius: 10px; border: 1px solid #2e2e38; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; }
+    .chat-header { background-color: #18181b; padding: 15px 20px; border-bottom: 1px solid #2e2e38; font-weight: bold; font-size: 1.1rem; color: #00e676; display: flex; align-items: center; gap: 10px; }
+    .status-dot { width: 10px; height: 10px; background-color: #00e676; border-radius: 50%; display: inline-block; }
+    .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .message { max-width: 80%; padding: 10px 14px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+    .message img { max-width: 100%; border-radius: 6px; display: block; margin-top: 5px; }
+    .user-message { align-self: flex-end; background-color: #2962ff; color: #fff; border-bottom-right-radius: 2px; }
+    .ai-message { align-self: flex-start; background-color: #2e2e38; color: #e1e1e6; border-bottom-left-radius: 2px; }
+    .typing-indicator { align-self: flex-start; background-color: #2e2e38; padding: 12px 18px; border-radius: 8px; border-bottom-left-radius: 2px; display: flex; align-items: center; gap: 6px; }
+    .typing-dot { width: 8px; height: 8px; background-color: #00e676; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+    .chat-input-area { padding: 15px; background-color: #18181b; border-top: 1px solid #2e2e38; display: flex; gap: 8px; align-items: center; }
+    input[type="text"] { flex: 1; background-color: #121214; border: 1px solid #2e2e38; color: #fff; padding: 12px 15px; border-radius: 6px; outline: none; font-size: 0.95rem; }
+    input[type="text"]:focus { border-color: #00e676; }
+    .file-btn { background: #2e2e38; color: #fff; border: 1px solid #3e3e4a; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+    .file-btn:hover { background: #3e3e4a; }
+    button.send-btn { background-color: #00e676; color: #121214; border: none; padding: 12px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+    button.send-btn:hover { background-color: #00c853; }
   </style>
 </head>
 <body>
 
-  <div class="sidebar">
-    <h2>Canlı Kullanıcılar</h2>
-    <button class="clear-btn" onclick="clearOfflineUsers()">🗑️ Pasif Kullanıcıları Sil</button>
-    <button class="clear-btn" style="background: #ff3366;" onclick="clearAllData()">⚠️ TÜM VERİLERİ SİL</button>
-    <div class="user-list" id="userList"></div>
-  </div>
-
-  <div class="main">
+  <div class="chat-container">
     <div class="chat-header">
-      <span id="activeUserTitle">Lütfen soldan bir kullanıcı seçin</span>
-      <button id="toggleBotBtn" class="toggle-bot-btn" onclick="toggleBot()">BOTU KAPAT / AÇ</button>
+      <span class="status-dot"></span>
+      pedal AI (v1.0)
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+      <div class="message ai-message">Noldu</div>
     </div>
 
-    <div class="messages" id="messageContainer"></div>
-
-    <div class="input-area">
-      <button class="btn" id="drawBtn" onclick="openDrawModal()" disabled>🎨 AI Çizim</button>
-      <button class="btn btn-danger" id="errorBtn" onclick="sendFakeError()" disabled>⚠️ Sahte Hata Gönder</button>
-      <label class="btn" title="Fotoğraf Gönder">
-        📷 Görsel
-        <input type="file" id="adminImageInput" accept="image/*" style="display:none;" onchange="sendAdminImage(this)" disabled>
+    <div class="chat-input-area">
+      <label class="file-btn" title="Fotoğraf Gönder">
+        📷
+        <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleUserImage(this)">
       </label>
-      <input type="text" id="adminInput" placeholder="Kullanıcıya mesaj gönder..." disabled>
-      <button id="sendAdminBtn" class="send" disabled>Gönder</button>
-    </div>
-  </div>
-
-  <!-- AI Çizim Penceresi & Fırça Seçimi -->
-  <div class="modal-overlay" id="drawModal">
-    <div class="modal-box">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="color: #00e676; font-size: 1rem;">✨ AI Fırçaları</h3>
-      </div>
-
-      <div class="brush-selector">
-        <button class="brush-btn active" onclick="setBrush('neuron', this)">✨ AI Nöron</button>
-        <button class="brush-btn" onclick="setBrush('matrix', this)">🔥 Matrix Kodu</button>
-        <button class="brush-btn" onclick="setBrush('laser', this)">⚡ Lazer Neon</button>
-        <button class="brush-btn" onclick="setBrush('spray', this)">🎨 Sprey</button>
-      </div>
-
-      <div class="canvas-container">
-        <canvas id="aiCanvas" width="480" height="320"></canvas>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <button class="btn" style="background: #ff3366;" onclick="clearCanvas()">Temizle</button>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn" onclick="closeDrawModal()">İptal</button>
-          <button class="send" onclick="sendCanvasImage()">Gönder (AI Resim)</button>
-        </div>
-      </div>
+      <input type="text" id="userInput" placeholder="Bir şeyler yaz..." autocomplete="off">
+      <button class="send-btn" id="sendBtn">Gönder</button>
     </div>
   </div>
 
@@ -121,287 +69,175 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    let currentSelectedUser = null;
-    let isBotPausedCurrent = false;
+    let sessionId = sessionStorage.getItem("user_session_id");
+    if (!sessionId) {
+      sessionId = "user_" + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem("user_session_id", sessionId);
+    }
+    const sessionRef = database.ref("sessions/" + sessionId);
 
-    database.ref("sessions").on("value", (snapshot) => {
-      const users = snapshot.val() || {};
-      const userListEl = document.getElementById("userList");
-      userListEl.innerHTML = "";
-      const now = Date.now();
+    // Durum Güncelleme Fonksiyonu
+    function updateStatus(status) {
+      sessionRef.child("status").set(status);
+      sessionRef.child("lastActive").set(Date.now());
+    }
 
-      Object.keys(users).forEach(uid => {
-        const u = users[uid];
-        let computedStatus = u.status || "offline";
-        if (now - (u.lastActive || 0) > 8000) computedStatus = "offline";
+    updateStatus("online");
+    sessionRef.child("status").onDisconnect().set("offline");
 
-        let statusText = "Çevrimdışı";
-        if (computedStatus === "online") statusText = "Aktif";
-        if (computedStatus === "away") statusText = "Uzakta";
+    // Düzenli Kalp Atışı (Sistem canlılık kontrolü)
+    setInterval(() => {
+      sessionRef.child("lastActive").set(Date.now());
+    }, 4000);
 
-        const card = document.createElement("div");
-        card.className = "user-card" + (currentSelectedUser === uid ? " active" : "");
-        card.innerHTML = `
-          <div class="user-info"><strong>${uid}</strong></div>
-          <span class="status-badge ${computedStatus}">${statusText}</span>
-        `;
-        card.onclick = () => selectUser(uid);
-        userListEl.appendChild(card);
-      });
+    // Kullanıcı sekmeden ayrıldı mı veya sekmeye geri geldi mi kontrolü
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        updateStatus("away");
+      } else {
+        updateStatus("online");
+      }
     });
 
-    function selectUser(uid) {
-      currentSelectedUser = uid;
-      document.getElementById("activeUserTitle").textContent = "Seçilen Kullanıcı: " + uid;
-      document.getElementById("adminInput").disabled = false;
-      document.getElementById("sendAdminBtn").disabled = false;
-      document.getElementById("adminImageInput").disabled = false;
-      document.getElementById("drawBtn").disabled = false;
-      document.getElementById("errorBtn").disabled = false;
+    let isBotPaused = false;
+    sessionRef.child("botPaused").on("value", (snap) => {
+      isBotPaused = snap.val() === true;
+    });
 
-      database.ref(`sessions/${uid}/botPaused`).on("value", (snap) => {
-        isBotPausedCurrent = snap.val() === true;
-        const toggleBtn = document.getElementById("toggleBotBtn");
-        if (isBotPausedCurrent) {
-          toggleBtn.textContent = "🤖 Yapay Zekayı Aç (Şu an KAPALI)";
-          toggleBtn.classList.add("paused");
-        } else {
-          toggleBtn.textContent = "🛑 Yapay Zekayı Durdur (Şu an AÇIK)";
-          toggleBtn.classList.remove("paused");
-        }
-      });
+    const defaultResponses = [
+      "yü", "banane olm", "sg", "erzurum", "alo", "evet", "hayır", 
+      "szdf ıbyg", "pipi", "0.2 0.6 birinde ses yok", "ankara mamak geldi ordan döndü", 
+      "aşşş aşşş", "ş", "sus", "anana", "geyb nevıl", "konuşma", 
+      "ben panelciyim kork benden", "banane"
+    ];
 
-      database.ref(`sessions/${uid}/messages`).off();
-      database.ref(`sessions/${uid}/messages`).on("value", (snapshot) => {
-        const msgs = snapshot.val() || {};
-        const container = document.getElementById("messageContainer");
-        container.innerHTML = "";
+    let currentTypingIndicator = null;
 
-        Object.values(msgs).forEach(m => {
-          const div = document.createElement("div");
-          if (m.type === "fake_error") {
-            div.className = "msg error-banner";
-            div.innerHTML = m.text;
-          } else if (m.type === "image") {
-            div.className = "msg " + (m.sender === "user" ? "user" : "ai");
-            div.innerHTML = `<strong>${m.sender === "user" ? "Kullanıcı" : "Sen"}:</strong><br><img src="${m.text}">`;
-          } else {
-            div.className = "msg " + (m.sender === "user" ? "user" : "ai");
-            div.textContent = (m.sender === "user" ? "Kullanıcı: " : "Sen (AI): ") + m.text;
-          }
-          container.appendChild(div);
-        });
-        container.scrollTop = container.scrollHeight;
-      });
+    function getRandomResponse() {
+      return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
     }
 
-    function toggleBot() {
-      if (!currentSelectedUser) return;
-      database.ref(`sessions/${currentSelectedUser}/botPaused`).set(!isBotPausedCurrent);
-    }
+    function sendMessage() {
+      const input = document.getElementById("userInput");
+      const messageText = input.value.trim();
+      if (messageText === "") return;
 
-    function sendAdminMessage() {
-      if (!currentSelectedUser) return;
-      const input = document.getElementById("adminInput");
-      const text = input.value.trim();
-      if (!text) return;
-
-      database.ref(`sessions/${currentSelectedUser}/messages`).push({
-        sender: "admin_manual",
-        type: "text",
-        text: text,
-        timestamp: Date.now()
-      });
+      appendMessage(messageText, "user-message", "text");
       input.value = "";
-    }
 
-    function sendFakeError() {
-      if (!currentSelectedUser) return;
-
-      const errorHTML = `
-        <div style="background: #0d0d11; border: 1px solid #ff3366; border-radius: 6px; padding: 12px; width: 100%; box-shadow: 0 4px 15px rgba(255,51,102,0.2); font-family: 'Courier New', monospace; text-align: left;">
-          <div style="color: #ff3366; font-weight: bold; border-bottom: 1px solid #ff3366; padding-bottom: 5px; margin-bottom: 8px; display: flex; justify-content: space-between;">
-            <span>🚨 Uncaught SyntaxError: Unexpected token '&lt;'</span>
-            <span>Line: 4:12</span>
-          </div>
-          <div style="color: #a0a0a0; font-size: 0.85rem; line-height: 1.4;">
-            <div>&nbsp;2 | &lt;script&gt;</div>
-            <div>&nbsp;3 | &nbsp;&nbsp;function initializeAI() {</div>
-            <div style="background: rgba(255, 51, 102, 0.2); color: #fff; font-weight: bold;">&gt; 4 | &nbsp;&nbsp;&nbsp;&nbsp;const response = &lt;&lt;SYSTEM_CORRUPT&gt;&gt;;</div>
-            <div style="color: #ff3366; margin-left: 20px;">^ SyntaxError: Invalid or unexpected token</div>
-            <div>&nbsp;5 | &nbsp;&nbsp;}</div>
-          </div>
-          <div style="margin-top: 10px; color: #ff8888; font-size: 0.75rem; font-style: italic;">
-            [Fatal Engine Exception] Chat thread crashed. Please contact system administrator.
-          </div>
-        </div>
-      `;
-
-      database.ref(`sessions/${currentSelectedUser}/messages`).push({
-        sender: "admin_manual",
-        type: "fake_error",
-        text: errorHTML,
+      sessionRef.child("messages").push({
+        sender: "user",
+        type: "text",
+        text: messageText,
         timestamp: Date.now()
       });
+
+      triggerBotReply();
     }
 
-    function sendAdminImage(fileInput) {
-      if (!currentSelectedUser) return;
+    function handleUserImage(fileInput) {
       const file = fileInput.files[0];
       if (!file) return;
 
       const reader = new FileReader();
       reader.onload = function(e) {
-        database.ref(`sessions/${currentSelectedUser}/messages`).push({
-          sender: "admin_manual",
+        const base64Img = e.target.result;
+        appendMessage(base64Img, "user-message", "image");
+
+        sessionRef.child("messages").push({
+          sender: "user",
           type: "image",
-          text: e.target.result,
+          text: base64Img,
           timestamp: Date.now()
         });
+
+        triggerBotReply();
       };
       reader.readAsDataURL(file);
       fileInput.value = "";
     }
 
-    // Canvas ve Çoklu Fırça Mantığı
-    const canvas = document.getElementById("aiCanvas");
-    const ctx = canvas.getContext("2d");
-    let isDrawing = false;
-    let points = [];
-    let hue = 120;
-    let currentBrush = "neuron";
+    function triggerBotReply() {
+      if (isBotPaused) return;
 
-    function setBrush(type, btn) {
-      currentBrush = type;
-      document.querySelectorAll(".brush-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-    }
+      currentTypingIndicator = createTypingIndicator();
+      const messagesContainer = document.getElementById("chatMessages");
+      messagesContainer.appendChild(currentTypingIndicator);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    function clearCanvas() {
-      ctx.fillStyle = "#0a0a0c";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      points = [];
-    }
-
-    function openDrawModal() {
-      document.getElementById("drawModal").style.display = "flex";
-      clearCanvas();
-    }
-
-    function closeDrawModal() {
-      document.getElementById("drawModal").style.display = "none";
-    }
-
-    canvas.addEventListener("mousedown", (e) => {
-      isDrawing = true;
-      points.push({ x: e.offsetX, y: e.offsetY });
-    });
-
-    canvas.addEventListener("mouseup", () => {
-      isDrawing = false;
-      points = [];
-    });
-
-    canvas.addEventListener("mousemove", (e) => {
-      if (!isDrawing) return;
-
-      const x = e.offsetX;
-      const y = e.offsetY;
-      points.push({ x, y });
-
-      if (currentBrush === "neuron") {
-        ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
-        ctx.lineWidth = 1.5;
-        ctx.lineCap = "round";
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
-
-        ctx.beginPath();
-        ctx.moveTo(points[points.length - 2].x, points[points.length - 2].y);
-        ctx.lineTo(x, y);
-        ctx.stroke();
-
-        for (let i = 0; i < 4; i++) {
-          const px = x + (Math.random() - 0.5) * 18;
-          const py = y + (Math.random() - 0.5) * 18;
-          ctx.fillStyle = `hsl(${hue + 40}, 100%, 70%)`;
-          ctx.fillRect(px, py, 2, 2);
-        }
-
-        if (points.length > 5) {
-          const lastPoint = points[points.length - 5];
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(0, 230, 118, 0.15)`;
-          ctx.moveTo(lastPoint.x, lastPoint.y);
-          ctx.lineTo(x, y);
-          ctx.stroke();
-        }
-      } else if (currentBrush === "matrix") {
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#00ff66";
-        ctx.font = "10px monospace";
-        const chars = "0110100101";
-        const char = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(char, x + (Math.random() - 0.5) * 10, y + (Math.random() - 0.5) * 10);
-      } else if (currentBrush === "laser") {
-        ctx.strokeStyle = "#00e676";
-        ctx.lineWidth = 4;
-        ctx.lineCap = "round";
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "#00e676";
-
-        ctx.beginPath();
-        ctx.moveTo(points[points.length - 2].x, points[points.length - 2].y);
-        ctx.lineTo(x, y);
-        ctx.stroke();
-      } else if (currentBrush === "spray") {
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = `hsl(${hue}, 100%, 60%)`;
-        for (let i = 0; i < 20; i++) {
-          const rx = x + (Math.random() - 0.5) * 25;
-          const ry = y + (Math.random() - 0.5) * 25;
-          ctx.fillRect(rx, ry, 1.5, 1.5);
-        }
+      if (window.currentAutoReplyTimeout) {
+        clearTimeout(window.currentAutoReplyTimeout);
       }
 
-      hue = (hue + 1.5) % 360;
+      window.currentAutoReplyTimeout = setTimeout(() => {
+        if (!isBotPaused) {
+          const autoResponse = getRandomResponse();
+          showAIResponse(autoResponse, "text");
+          sessionRef.child("messages").push({
+            sender: "ai",
+            type: "text",
+            text: autoResponse,
+            timestamp: Date.now()
+          });
+        } else if (currentTypingIndicator) {
+          currentTypingIndicator.remove();
+          currentTypingIndicator = null;
+        }
+      }, 3000);
+    }
+
+    function showAIResponse(content, type) {
+      if (currentTypingIndicator) {
+        currentTypingIndicator.remove();
+        currentTypingIndicator = null;
+      }
+      appendMessage(content, "ai-message", type);
+    }
+
+    sessionRef.child("messages").on("child_added", (snapshot) => {
+      const msg = snapshot.val();
+      if (msg.sender === "admin_manual") {
+        if (window.currentAutoReplyTimeout) {
+          clearTimeout(window.currentAutoReplyTimeout);
+        }
+        showAIResponse(msg.text, msg.type || "text");
+      }
     });
 
-    function sendCanvasImage() {
-      if (!currentSelectedUser) return;
-      const base64Image = canvas.toDataURL("image/png");
-      database.ref(`sessions/${currentSelectedUser}/messages`).push({
-        sender: "admin_manual",
-        type: "image",
-        text: base64Image,
-        timestamp: Date.now()
-      });
-      closeDrawModal();
-    }
-
-    function clearOfflineUsers() {
-      const now = Date.now();
-      database.ref("sessions").once("value", (snapshot) => {
-        const users = snapshot.val() || {};
-        Object.keys(users).forEach(uid => {
-          const u = users[uid];
-          const isStale = now - (u.lastActive || 0) > 8000;
-          if (u.status === "offline" || isStale) {
-            database.ref(`sessions/${uid}`).remove();
-          }
-        });
-      });
-    }
-
-    function clearAllData() {
-      if (confirm("Tüm sohbet geçmişi ve kullanıcı verileri silinecek. Emin misin?")) {
-        database.ref("sessions").remove();
+    function createTypingIndicator() {
+      const container = document.createElement("div");
+      container.classList.add("typing-indicator");
+      for (let i = 0; i < 3; i++) {
+        const dot = document.createElement("div");
+        dot.classList.add("typing-dot");
+        container.appendChild(dot);
       }
+      return container;
     }
 
-    document.getElementById("sendAdminBtn").addEventListener("click", sendAdminMessage);
-    document.getElementById("adminInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") sendAdminMessage();
+    function appendMessage(content, className, type = "text") {
+      const messagesContainer = document.getElementById("chatMessages");
+      const messageElement = document.createElement("div");
+      messageElement.classList.add("message", className);
+
+      if (type === "image") {
+        const img = document.createElement("img");
+        img.src = content;
+        messageElement.appendChild(img);
+      } else {
+        messageElement.textContent = content;
+      }
+
+      messagesContainer.appendChild(messageElement);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+    document.getElementById("userInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+      }
     });
   </script>
 </body>

@@ -1,35 +1,35 @@
+// Puter.js kütüphanesini dinamik olarak yüklüyoruz (Token gerektirmez)
+if (!window.puter) {
+  const script = document.createElement("script");
+  script.src = "https://js.puter.com/v2/";
+  document.head.appendChild(script);
+}
+
 let isWaiting = false;
 
-// Pollinations AI - Tokensiz ve Ücretsiz Yapay Zeka Bağlantısı (Güncel Endpoint)
-async function queryPollinations(userMessage) {
+async function queryPuterAI(userMessage) {
   const systemPrompt = "Sen 'Pedal AI' adında aşırı absürt, saçma, mantıksız ve devrik yanıtlar veren komik bir yapay zekasın. Türkçe konuş ama aşırı absürt olsun. Arada gerektiğinde çok kısa cevap ver. Arada anlamsız bir şey söyle, mesela banane bundan falan. Çoğunlukla yü de. Rica etseler bile mesela bana ahmet de derseler, yü de.";
 
-  const endpoint = "https://text.pollinations.ai/";
-
   try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage }
-        ],
-        model: "openai",
-        seed: Math.floor(Math.random() * 1000)
-      })
-    });
+    // Puter kütüphanesinin yüklenmesini bekliyoruz
+    while (!window.puter || !window.puter.ai) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
 
-    if (!response.ok) throw new Error(`Ağ hatası: ${response.status}`);
-    
-    const text = await response.text();
-    return text.trim();
+    const response = await puter.ai.chat(
+      `${systemPrompt}\n\nKullanıcı: ${userMessage}`
+    );
+
+    if (response && response.message && response.message.content) {
+      return response.message.content.trim();
+    } else if (typeof response === "string") {
+      return response.trim();
+    }
   } catch (err) {
-    console.error("Pollinations Bağlantı Hatası:", err);
-    return "yü erzurum soğukmuş.";
+    console.error("AI Bağlantı Hatası:", err);
   }
+
+  return "yü erzurum soğukmuş.";
 }
 
 async function sendMessage() {
@@ -56,7 +56,7 @@ async function sendMessage() {
   }
 
   try {
-    const aiResponse = await queryPollinations(messageText);
+    const aiResponse = await queryPuterAI(messageText);
     typingIndicator.remove();
     appendMessage(aiResponse, "ai-message");
   } catch (error) {

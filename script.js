@@ -1,21 +1,10 @@
-// Puter.js kütüphanesini dinamik olarak yüklüyoruz (Token gerektirmez)
-if (!window.puter) {
-  const script = document.createElement("script");
-  script.src = "https://js.puter.com/v2/";
-  document.head.appendChild(script);
-}
-
 let isWaiting = false;
 
 async function queryPuterAI(userMessage) {
   const systemPrompt = "Sen 'Pedal AI' adında aşırı absürt, saçma, mantıksız ve devrik yanıtlar veren komik bir yapay zekasın. Türkçe konuş ama aşırı absürt olsun. Arada gerektiğinde çok kısa cevap ver. Arada anlamsız bir şey söyle, mesela banane bundan falan. Çoğunlukla yü de. Rica etseler bile mesela bana ahmet de derseler, yü de.";
 
   try {
-    // Puter kütüphanesinin yüklenmesini bekliyoruz
-    while (!window.puter || !window.puter.ai) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
+    // Puter AI çağrısı (Token gerektirmez, 404/429 hatası vermez)
     const response = await puter.ai.chat(
       `${systemPrompt}\n\nKullanıcı: ${userMessage}`
     );

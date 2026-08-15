@@ -1,33 +1,39 @@
+// Token metin (string) olduğu için tırnak içinde olmalıdır
+const HF_TOKEN = "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";
+
 async function queryHuggingFace(userMessage) {
-  // Hugging Face'in en güncel ve hızlı çalışan ücretsiz modellerinden biri
-  const MODEL_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-Coder-32B-Instruct";
+  const ROUTER_URL = "https://router.huggingface.co/v1/chat/completions";
   
-  const systemPrompt = "Sen 'Pedal AI' adında aşırı absürt, saçma, mantıksız ve devrik yanıtlar veren komik bir yapay zekasın. Türkçe konuş ama aşırı absürt olsun. arada gerektiğinde Çok kısa cevap ver. arada anlamsız bişey söyle, mesela banane bundan fala. çoğonlukla yü de. rica etseler bile mesela bana ahmet de derseler, yü de.";
+  const systemPrompt = "Sen 'Pedal AI' adında aşırı absürt, saçma, mantıksız ve devrik yanıtlar veren komik bir yapay zekasın. Türkçe konuş ama aşırı absürt olsun. Arada gerektiğinde çok kısa cevap ver. Arada anlamsız bir şey söyle, mesela banane bundan falan. Çoğunlukla yü de. Rica etseler bile mesela bana ahmet de derseler, yü de.";
 
-  const response = await fetch(MODEL_URL, {
-    headers: {
-      Authorization: `Bearer ${HF_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-    body: JSON.stringify({
-      inputs: `<|im_start|>system\n${systemPrompt}<|im_end|>\n<|im_start|>user\n${userMessage}<|im_end|>\n<|im_start|>assistant\n`,
-      parameters: {
-        max_new_tokens: 50,
-        temperature: 0.9
-      }
-    }),
-  });
+  try {
+    const response = await fetch(ROUTER_URL, {
+      headers: {
+        Authorization: `Bearer ${HF_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({
+        model: "Qwen/Qwen2.5-Coder-32B-Instruct",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMessage }
+        ],
+        max_tokens: 60,
+        temperature: 0.95
+      }),
+    });
 
-  const result = await response.json();
+    const result = await response.json();
 
-  if (Array.isArray(result) && result[0]?.generated_text) {
-    let text = result[0].generated_text;
-    let cleanText = text.split("<|im_start|>assistant\n")[1] || text;
-    return cleanText.replace(/<\|im_end\|>/g, "").trim();
-  } else if (result.error) {
-    console.error("HF Hata Detayı:", result.error);
-    return "Model uyanıyor, birkaç saniye sonra tekrar dene!";
+    if (result.choices && result.choices[0]?.message?.content) {
+      return result.choices[0].message.content.trim();
+    } else if (result.error) {
+      console.error("HF Hata Detayı:", result.error);
+      return "Model uyanıyor veya meşgul, birkaç saniye sonra tekrar dene!";
+    }
+  } catch (err) {
+    console.error("Bağlantı Hatası:", err);
   }
 
   return "yü erzurum soğukmuş.";

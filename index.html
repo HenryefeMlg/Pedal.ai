@@ -5,160 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>pedal AI</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    body {
-      background-color: #121214;
-      color: #e1e1e6;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .chat-container {
-      width: 100%;
-      max-width: 500px;
-      height: 600px;
-      background-color: #202024;
-      border-radius: 10px;
-      border: 1px solid #2e2e38;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      overflow: hidden;
-    }
-
-    .chat-header {
-      background-color: #18181b;
-      padding: 15px 20px;
-      border-bottom: 1px solid #2e2e38;
-      font-weight: bold;
-      font-size: 1.1rem;
-      color: #00e676;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      background-color: #00e676;
-      border-radius: 50%;
-      display: inline-block;
-    }
-
-    .chat-messages {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .message {
-      max-width: 80%;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      line-height: 1.4;
-      word-wrap: break-word;
-    }
-
-    .user-message {
-      align-self: flex-end;
-      background-color: #2962ff;
-      color: #fff;
-      border-bottom-right-radius: 2px;
-    }
-
-    .ai-message {
-      align-self: flex-start;
-      background-color: #2e2e38;
-      color: #e1e1e6;
-      border-bottom-left-radius: 2px;
-    }
-
-    .typing-indicator {
-      align-self: flex-start;
-      background-color: #2e2e38;
-      padding: 12px 18px;
-      border-radius: 8px;
-      border-bottom-left-radius: 2px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .typing-dot {
-      width: 8px;
-      height: 8px;
-      background-color: #00e676;
-      border-radius: 50%;
-      animation: bounce 1.4s infinite ease-in-out both;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #121214; color: #e1e1e6; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .chat-container { width: 100%; max-width: 500px; height: 600px; background-color: #202024; border-radius: 10px; border: 1px solid #2e2e38; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.5); overflow: hidden; }
+    .chat-header { background-color: #18181b; padding: 15px 20px; border-bottom: 1px solid #2e2e38; font-weight: bold; font-size: 1.1rem; color: #00e676; display: flex; align-items: center; gap: 10px; }
+    .status-dot { width: 10px; height: 10px; background-color: #00e676; border-radius: 50%; display: inline-block; }
+    .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .message { max-width: 80%; padding: 10px 14px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+    .user-message { align-self: flex-end; background-color: #2962ff; color: #fff; border-bottom-right-radius: 2px; }
+    .ai-message { align-self: flex-start; background-color: #2e2e38; color: #e1e1e6; border-bottom-left-radius: 2px; }
+    .typing-indicator { align-self: flex-start; background-color: #2e2e38; padding: 12px 18px; border-radius: 8px; border-bottom-left-radius: 2px; display: flex; align-items: center; gap: 6px; }
+    .typing-dot { width: 8px; height: 8px; background-color: #00e676; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
     .typing-dot:nth-child(1) { animation-delay: -0.32s; }
     .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-
-    @keyframes bounce {
-      0%, 80%, 100% { 
-        transform: scale(0);
-        opacity: 0.4;
-      }
-      40% { 
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-
-    .chat-input-area {
-      padding: 15px;
-      background-color: #18181b;
-      border-top: 1px solid #2e2e38;
-      display: flex;
-      gap: 10px;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      background-color: #121214;
-      border: 1px solid #2e2e38;
-      color: #fff;
-      padding: 12px 15px;
-      border-radius: 6px;
-      outline: none;
-      font-size: 0.95rem;
-    }
-
-    input[type="text"]:focus {
-      border-color: #00e676;
-    }
-
-    button {
-      background-color: #00e676;
-      color: #121214;
-      border: none;
-      padding: 0 20px;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
+    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+    .chat-input-area { padding: 15px; background-color: #18181b; border-top: 1px solid #2e2e38; display: flex; gap: 10px; }
+    input[type="text"] { flex: 1; background-color: #121214; border: 1px solid #2e2e38; color: #fff; padding: 12px 15px; border-radius: 6px; outline: none; font-size: 0.95rem; }
+    input[type="text"]:focus { border-color: #00e676; }
+    button { background-color: #00e676; color: #121214; border: none; padding: 0 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
     button:hover { background-color: #00c853; }
-    button:disabled {
-      background-color: #2e2e38;
-      color: #777;
-      cursor: not-allowed;
-    }
+    button:disabled { background-color: #2e2e38; color: #777; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -179,14 +45,41 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
   <script>
-    // Ses dosyalarının eşleştirildiği harita (Yanıt Metni : Ses Dosyası Yolu)
+    const firebaseConfig = {
+      apiKey: "AIzaSyChsEoAXAYGonPluBXSBT6ibHu9B896Mvs",
+      authDomain: "pedal-a.firebaseapp.com",
+      databaseURL: "https://pedal-a-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "pedal-a",
+      storageBucket: "pedal-a.firebasestorage.app",
+      messagingSenderId: "1011734040508",
+      appId: "1:1011734040508:web:b233a2c0efef2c918365b9",
+      measurementId: "G-ZMBK5X8500"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    let sessionId = localStorage.getItem("pedal_session_id");
+    if (!sessionId) {
+      sessionId = "user_" + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem("pedal_session_id", sessionId);
+    }
+
+    const sessionRef = database.ref("sessions/" + sessionId);
+
+    sessionRef.child("status").set("online");
+    sessionRef.child("status").onDisconnect().set("offline");
+    sessionRef.child("lastActive").set(Date.now());
+
     const audioMap = {
       "erzurum": "sounds/erzurum.mp3",
       "sg oç": "sounds/sg_oc.mp3",
       "sus": "sounds/sus.mp3",
       "alo": "sounds/alo.mp3"
-      // İhtiyacınıza göre buraya ek sesler tanımlayabilirsiniz
     };
 
     const keywordResponses = [
@@ -210,10 +103,10 @@
     ];
 
     let isWaiting = false;
+    let currentTypingIndicator = null;
 
     function getSmartResponse(userText) {
       const lowerInput = userText.toLowerCase().trim();
-
       let earliestMatchIndex = Infinity;
       let selectedGroup = null;
 
@@ -237,10 +130,9 @@
     }
 
     function playAudioForResponse(response) {
-      // Yanıt metnine karşılık gelen ses dosyası var mı kontrol et
       if (audioMap[response]) {
         const audio = new Audio(audioMap[response]);
-        audio.play().catch(e => console.log("Ses oynatma engellendi veya dosya bulunamadı:", e));
+        audio.play().catch(e => console.log("Ses çalınamadı:", e));
       }
     }
 
@@ -249,44 +141,72 @@
 
       const input = document.getElementById("userInput");
       const messageText = input.value.trim();
-
       if (messageText === "") return;
 
       appendMessage(messageText, "user-message");
       input.value = "";
       
       isWaiting = true;
-      const sendBtn = document.getElementById("sendBtn");
-      sendBtn.disabled = true;
+      document.getElementById("sendBtn").disabled = true;
 
-      const typingIndicator = createTypingIndicator();
+      sessionRef.child("messages").push({
+        sender: "user",
+        text: messageText,
+        timestamp: Date.now()
+      });
+
+      currentTypingIndicator = createTypingIndicator();
       const messagesContainer = document.getElementById("chatMessages");
-      messagesContainer.appendChild(typingIndicator);
+      messagesContainer.appendChild(currentTypingIndicator);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-      setTimeout(() => {
-        typingIndicator.remove();
-        const responseText = getSmartResponse(messageText);
-        appendMessage(responseText, "ai-message");
-        
-        // Cevaba ait ses dosyası varsa çal
-        playAudioForResponse(responseText);
+      const autoReplyTimeout = setTimeout(() => {
+        if (isWaiting) {
+          const autoResponse = getSmartResponse(messageText);
+          sendAIResponse(autoResponse);
+        }
+      }, 4000);
 
-        isWaiting = false;
-        sendBtn.disabled = false;
-      }, 1000);
+      window.currentAutoReplyTimeout = autoReplyTimeout;
     }
+
+    function sendAIResponse(responseText) {
+      if (currentTypingIndicator) {
+        currentTypingIndicator.remove();
+        currentTypingIndicator = null;
+      }
+
+      appendMessage(responseText, "ai-message");
+      playAudioForResponse(responseText);
+
+      sessionRef.child("messages").push({
+        sender: "ai",
+        text: responseText,
+        timestamp: Date.now()
+      });
+
+      isWaiting = false;
+      document.getElementById("sendBtn").disabled = false;
+    }
+
+    sessionRef.child("messages").on("child_added", (snapshot) => {
+      const msg = snapshot.val();
+      if (msg.sender === "admin_manual" && isWaiting) {
+        if (window.currentAutoReplyTimeout) {
+          clearTimeout(window.currentAutoReplyTimeout);
+        }
+        sendAIResponse(msg.text);
+      }
+    });
 
     function createTypingIndicator() {
       const container = document.createElement("div");
       container.classList.add("typing-indicator");
-      
       for (let i = 0; i < 3; i++) {
         const dot = document.createElement("div");
         dot.classList.add("typing-dot");
         container.appendChild(dot);
       }
-      
       return container;
     }
 
@@ -295,14 +215,11 @@
       const messageElement = document.createElement("div");
       messageElement.classList.add("message", className);
       messageElement.textContent = text;
-      
       messagesContainer.appendChild(messageElement);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // Olay Dinleyicileri (Event Listeners)
     document.getElementById("sendBtn").addEventListener("click", sendMessage);
-
     document.getElementById("userInput").addEventListener("keydown", function(e) {
       if (e.key === "Enter") {
         e.preventDefault();
@@ -310,6 +227,5 @@
       }
     });
   </script>
-
 </body>
 </html>

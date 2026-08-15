@@ -1,21 +1,23 @@
 let isWaiting = false;
 
-async function queryPuterAI(userMessage) {
+// Oturum veya Key Gerektirmeyen Doğrudan AI Bağlantısı
+async function queryAI(userMessage) {
   const systemPrompt = "Sen 'Pedal AI' adında aşırı absürt, saçma, mantıksız ve devrik yanıtlar veren komik bir yapay zekasın. Türkçe konuş ama aşırı absürt olsun. Arada gerektiğinde çok kısa cevap ver. Arada anlamsız bir şey söyle, mesela banane bundan falan. Çoğunlukla yü de. Rica etseler bile mesela bana ahmet de derseler, yü de.";
 
-  try {
-    // Puter AI çağrısı (Token gerektirmez, 404/429 hatası vermez)
-    const response = await puter.ai.chat(
-      `${systemPrompt}\n\nKullanıcı: ${userMessage}`
-    );
+  const promptText = `${systemPrompt}\n\nKullanıcı: ${userMessage}\nPedal AI:`;
+  const encodedPrompt = encodeURIComponent(promptText);
 
-    if (response && response.message && response.message.content) {
-      return response.message.content.trim();
-    } else if (typeof response === "string") {
-      return response.trim();
+  try {
+    const response = await fetch(`https://text.pollinations.ai/${encodedPrompt}?model=openai&cache=false`);
+
+    if (!response.ok) {
+      throw new Error("Bağlantı hatası");
     }
+
+    const text = await response.text();
+    return text.trim();
   } catch (err) {
-    console.error("AI Bağlantı Hatası:", err);
+    console.error("AI Hatası:", err);
   }
 
   return "yü erzurum soğukmuş.";
@@ -45,7 +47,7 @@ async function sendMessage() {
   }
 
   try {
-    const aiResponse = await queryPuterAI(messageText);
+    const aiResponse = await queryAI(messageText);
     typingIndicator.remove();
     appendMessage(aiResponse, "ai-message");
   } catch (error) {

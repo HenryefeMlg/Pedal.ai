@@ -1,58 +1,25 @@
-// Token'ı kod içinde tutmak yerine tarayıcı hafızasında saklıyoruz
-let HF_TOKEN = localStorage.getItem("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");
-
-// Hafızada token yoksa ekranda açılır pencere ile bir defa sorar
-if (!HF_TOKEN) {
-  HF_TOKEN = prompt("Lütfen Hugging Face Token'ınızı girin (hf_...):");
-  if (HF_TOKEN) {
-    localStorage.setItem("PEDAL_HF_TOKEN", HF_TOKEN.trim());
-  }
-}
-
 let isWaiting = false;
 
-async function queryHuggingFace(userMessage) {
-  const ROUTER_URL = "https://router.huggingface.co/v1/chat/completions";
-  
+// Pollinations AI - Tokensiz ve Ücretsiz Yapay Zeka Bağlantısı
+async function queryPollinations(userMessage) {
   const systemPrompt = "Sen 'Pedal AI' adında aşırı absürt, saçma, mantıksız ve devrik yanıtlar veren komik bir yapay zekasın. Türkçe konuş ama aşırı absürt olsun. Arada gerektiğinde çok kısa cevap ver. Arada anlamsız bir şey söyle, mesela banane bundan falan. Çoğunlukla yü de. Rica etseler bile mesela bana ahmet de derseler, yü de.";
 
+  const fullPrompt = `${systemPrompt}\n\nKullanıcı: ${userMessage}\nPedal AI:`;
+  const encodedPrompt = encodeURIComponent(fullPrompt);
+  
+  // Model parametresi ile Llama-3 modelini kullanıyoruz
+  const url = `https://text.pollinations.ai/${encodedPrompt}?model=llama&seed=${Math.floor(Math.random() * 1000)}`;
+
   try {
-    const response = await fetch(ROUTER_URL, {
-      headers: {
-        Authorization: `Bearer ${HF_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: JSON.stringify({
-        model: "meta-llama/Llama-3.2-1B-Instruct",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMessage }
-        ],
-        max_tokens: 60,
-        temperature: 0.95
-      }),
-    });
-
-    const result = await response.json();
-
-    if (result.choices && result.choices[0]?.message?.content) {
-      return result.choices[0].message.content.trim();
-    } else if (result.error) {
-      console.error("HF Detaylı Hata:", result.error);
-      
-      // Token geçersizse hafızadan siler ve kullanıcıyı uyarır
-      if (typeof result.error === "string" && (result.error.includes("token") || result.error.includes("Unauthorized"))) {
-        localStorage.removeItem("PEDAL_HF_TOKEN");
-        return "Token geçersiz veya iptal edilmiş! Sayfayı yenileyip yeni token girin.";
-      }
-      return "Sunucu yoğun, saniyeler sonra tekrar dene!";
-    }
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Ağ hatası oluştu.");
+    
+    const text = await response.text();
+    return text.trim();
   } catch (err) {
-    console.error("Bağlantı Hatası:", err);
+    console.error("Pollinations Bağlantı Hatası:", err);
+    return "yü erzurum soğukmuş.";
   }
-
-  return "yü erzurum soğukmuş.";
 }
 
 async function sendMessage() {
@@ -79,7 +46,7 @@ async function sendMessage() {
   }
 
   try {
-    const aiResponse = await queryHuggingFace(messageText);
+    const aiResponse = await queryPollinations(messageText);
     typingIndicator.remove();
     appendMessage(aiResponse, "ai-message");
   } catch (error) {

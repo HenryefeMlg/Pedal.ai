@@ -76,6 +76,13 @@
     }
     const sessionRef = database.ref("sessions/" + sessionId);
 
+    // Bağlantı koptuğunda, sekme kapatıldığında veya sayfa yenilendiğinde veriyi tamamen sil
+    sessionRef.onDisconnect().remove();
+
+    window.addEventListener("beforeunload", () => {
+      sessionRef.remove();
+    });
+
     // Durum Güncelleme Fonksiyonu
     function updateStatus(status) {
       sessionRef.child("status").set(status);
@@ -83,7 +90,6 @@
     }
 
     updateStatus("online");
-    sessionRef.child("status").onDisconnect().set("offline");
 
     // Düzenli Kalp Atışı (Sistem canlılık kontrolü)
     setInterval(() => {

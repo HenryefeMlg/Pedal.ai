@@ -63,16 +63,12 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    let sessionId = localStorage.getItem("pedal_session_id");
-    if (!sessionId) {
-      sessionId = "user_" + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem("pedal_session_id", sessionId);
-    }
-
+    // Her yeni giriş/sayfa yenilemede yepyeni bir oturum kimliği oluşturulur
+    let sessionId = "user_" + Math.random().toString(36).substr(2, 9);
     const sessionRef = database.ref("sessions/" + sessionId);
 
     sessionRef.child("status").set("online");
-    sessionRef.child("status").onDisconnect().set("offline");
+    sessionRef.child("status").onDisconnect().remove(); // Kullanıcı çıkınca veritabanından temizlenir
     sessionRef.child("lastActive").set(Date.now());
 
     let isBotPaused = false;
@@ -154,7 +150,6 @@
         timestamp: Date.now()
       });
 
-      // Bот kapalıysa otomatik yanıt sürecini hiç başlatma
       if (isBotPaused) return;
 
       currentTypingIndicator = createTypingIndicator();
@@ -167,7 +162,6 @@
       }
 
       window.currentAutoReplyTimeout = setTimeout(() => {
-        // Bekleme süresi dolduğunda tekrar kontrol et
         if (!isBotPaused) {
           const autoResponse = getSmartResponse(messageText);
           showAIResponse(autoResponse);
@@ -192,7 +186,6 @@
       playAudioForResponse(responseText);
     }
 
-    // Panelden veya veritabanından gelen tüm 'ai' ve 'admin_manual' mesajlarını canlı olarak dinle
     sessionRef.child("messages").on("child_added", (snapshot) => {
       const msg = snapshot.val();
       if (msg.sender === "admin_manual") {

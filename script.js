@@ -1,123 +1,51 @@
-let model;
 let isWaiting = false;
 
-// Yapay zekanın harf evreni
-const chars = " abcçdefgğhıijklmnoöprsştuüvyz0123456789";
-const charToIdx = {};
-const idxToChar = {};
+// Hugging Face Ücretsiz Tokenin (hf_... ile başlar)
+const HF_TOKEN = "BURAYA_HUGGINGFACE_TOKENINI_YAZ";
 
-for (let i = 0; i < chars.length; i++) {
-  charToIdx[chars[i]] = i;
-  idxToChar[i] = chars[i];
-}
+// Kullanacağımız Gerçek Dil Modeli
+const MODEL_URL = "https://api-inference.huggingface.co/models/google/gemma-2-2b-it";
 
-// Derin Öğrenme Sinir Ağı Mimarisi
-async function initGenerativeAI() {
-  model = tf.sequential();
+async function queryHuggingFace(userMessage) {
+  // Yapay zekaya saçmalamasını söyleyen sistem talimatı (System Prompt)
+  const systemPrompt = "Sen 'Pedal AI' adında saçma sapan cevaplar veren absürt bir yapay zekasın. Mantıklı cümle kurma, Türkçe konuş ama aşırı absürt, komik, mantıksız ve devrik yanıtlar ver. Kısa cevap ver.";
   
-  // Nöron Katmanları
-  model.add(tf.layers.dense({ units: 32, inputShape: [5, chars.length], activation: 'relu' }));
-  model.add(tf.layers.flatten());
-  model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
-  model.add(tf.layers.dense({ units: chars.length, activation: 'softmax' }));
+  const fullPrompt = `<start_of_turn>user\n${systemPrompt}\n\nKullanıcı: ${userMessage}<end_of_turn>\n<start_of_turn>model\n`;
 
-  model.compile({
-    optimizer: 'adam',
-    loss: 'categoricalCrossentropy'
+  const response = await fetch(MODEL_URL, {
+    headers: {
+      Authorization: `Bearer ${HF_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+    body: JSON.stringify({
+      inputs: fullPrompt,
+      parameters: {
+        max_new_tokens: 60,
+        temperature: 1.5, // Sıcaklığı tavan yapıyoruz ki saçmalasın
+        top_p: 0.9,
+        do_sample: true
+      }
+    }),
   });
 
-  // Hızlı Eğitim İçin Sentetik Veri
-  const sampleTexts = ["erzurum", "banane", "yü yü", "pedal", "saçma", "sistem", "lokum"];
-  const xsList = [];
-  const ysList = [];
+  const result = await response.json();
 
-  for (let text of sampleTexts) {
-    for (let i = 0; i < text.length - 5; i++) {
-      let seq = text.substring(i, i + 5);
-      let nextChar = text[i + 5];
-      
-      let seqVec = [];
-      for (let c of seq) {
-        let vec = new Array(chars.length).fill(0);
-        vec[charToIdx[c] || 0] = 1;
-        seqVec.push(vec);
-      }
-      xsList.push(seqVec);
-
-      let targetVec = new Array(chars.length).fill(0);
-      targetVec[charToIdx[nextChar] || 0] = 1;
-      ysList.push(targetVec);
-    }
+  if (Array.isArray(result) && result[0]?.generated_text) {
+    // Modelin ürettiği metni temizleme
+    let text = result[0].generated_text;
+    let cleanText = text.split("<start_of_turn>model\n")[1] || text;
+    return cleanText.trim();
+  } else if (result.error) {
+    console.error("HF Error:", result.error);
+    return "banane olm beyinim yandı (Model yükleniyor olabilir, tekrar dene).";
   }
 
-  if (xsList.length > 0) {
-    const xs = tf.tensor3d(xsList);
-    const ys = tf.tensor2d(ysList);
-    await model.fit(xs, ys, { epochs: 20 });
-    xs.dispose();
-    ys.dispose();
-  }
-
-  document.getElementById("statusDot").classList.add("ready");
-  document.getElementById("systemStatus").textContent = "Sıfırdan Kelime Üreten YZ Aktif!";
-  document.getElementById("userInput").disabled = false;
-  document.getElementById("sendBtn").disabled = false;
+  return "yü yü yü! erzurum soğukmuş.";
 }
-
-// Harf Harf Yeni Kelime Türetme Fonksiyonu
-function generateNewWord(prompt) {
-  let cleanInput = prompt.toLowerCase().replace(/[^a-zçğıöşü0-9 ]/g, "");
-  if (cleanInput.length < 5) {
-    cleanInput = (cleanInput + "     ").substring(0, 5);
-  }
-
-  let currentSeq = cleanInput.substring(cleanInput.length - 5);
-  let generatedResult = "";
-
-  for (let step = 0; step < 8; step++) {
-    let seqVec = [];
-    for (let c of currentSeq) {
-      let vec = new Array(chars.length).fill(0);
-      vec[charToIdx[c] || 0] = 1;
-      seqVec.push(vec);
-    }
-
-    const inputTensor = tf.tensor3d([seqVec]);
-    const prediction = model.predict(inputTensor);
-    const probs = prediction.dataSync();
-
-    inputTensor.dispose();
-    prediction.dispose();
-
-    let chosenIdx = sampleFromProbs(probs, 1.8); 
-    let nextChar = idxToChar[chosenIdx] || "a";
-
-    generatedResult += nextChar;
-    currentSeq = currentSeq.substring(1) + nextChar;
-  }
-
-  return generatedResult.trim();
-}
-
-function sampleFromProbs(probs, temperature) {
-  let logits = probs.map(p => Math.log(p + 1e-7) / temperature);
-  let expLogits = logits.map(l => Math.exp(l));
-  let sumExp = expLogits.reduce((a, b) => a + b, 0);
-  let normProbs = expLogits.map(e => e / sumExp);
-
-  let r = Math.random();
-  let acc = 0;
-  for (let i = 0; i < normProbs.length; i++) {
-    acc += normProbs[i];
-    if (r <= acc) return i;
-  }
-  return normProbs.length - 1;
-}
-
-window.addEventListener('DOMContentLoaded', initGenerativeAI);
 
 async function sendMessage() {
-  if (isWaiting || !model) return;
+  if (isWaiting) return;
 
   const input = document.getElementById("userInput");
   const messageText = input.value.trim();
@@ -135,15 +63,17 @@ async function sendMessage() {
   messagesContainer.appendChild(typingIndicator);
   messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-  setTimeout(() => {
-    const generatedWord = generateNewWord(messageText);
-    
+  try {
+    const aiResponse = await queryHuggingFace(messageText);
     typingIndicator.remove();
-    appendMessage(generatedWord, "ai-message");
+    appendMessage(aiResponse, "ai-message");
+  } catch (error) {
+    typingIndicator.remove();
+    appendMessage("karpuz kabuğu denize düştü, bağlantı koptu.", "ai-message");
+  }
 
-    isWaiting = false;
-    document.getElementById("sendBtn").disabled = false;
-  }, 1000);
+  isWaiting = false;
+  document.getElementById("sendBtn").disabled = false;
 }
 
 function createTypingIndicator() {

@@ -180,6 +180,15 @@
   </div>
 
   <script>
+    // Ses dosyalarının eşleştirildiği harita (Yanıt Metni : Ses Dosyası Yolu)
+    const audioMap = {
+      "erzurum": "sounds/erzurum.mp3",
+      "sg oç": "sounds/sg_oc.mp3",
+      "sus": "sounds/sus.mp3",
+      "alo": "sounds/alo.mp3"
+      // İhtiyacınıza göre buraya ek sesler tanımlayabilirsiniz
+    };
+
     const keywordResponses = [
       { keywords: ["selam", "merhaba", "sa", "hey", "alo", "hi"], answers: ["yü", "alo", "ne var", "noldu", "🗿", "🕋ﷲ﷽ 🕋"] },
       { keywords: ["nasılsın", "naber", "nettn"], answers: ["iyiyim", "annen", "konuşma", "🕋 ﷲ ﷽"] },
@@ -208,7 +217,6 @@
       let earliestMatchIndex = Infinity;
       let selectedGroup = null;
 
-      // Metinde geçen anahtar kelimelerin indekslerini kontrol edip en önce gelenini seçer
       for (const item of keywordResponses) {
         for (const kw of item.keywords) {
           if (kw.length > 0) {
@@ -226,6 +234,14 @@
       }
 
       return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    }
+
+    function playAudioForResponse(response) {
+      // Yanıt metnine karşılık gelen ses dosyası var mı kontrol et
+      if (audioMap[response]) {
+        const audio = new Audio(audioMap[response]);
+        audio.play().catch(e => console.log("Ses oynatma engellendi veya dosya bulunamadı:", e));
+      }
     }
 
     function sendMessage() {
@@ -253,6 +269,9 @@
         const responseText = getSmartResponse(messageText);
         appendMessage(responseText, "ai-message");
         
+        // Cevaba ait ses dosyası varsa çal
+        playAudioForResponse(responseText);
+
         isWaiting = false;
         sendBtn.disabled = false;
       }, 1000);

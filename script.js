@@ -1,4 +1,4 @@
-const HF_TOKEN = "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";
+const HF_TOKEN = "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";
 
 let isWaiting = false;
 

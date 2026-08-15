@@ -186,10 +186,11 @@
       { keywords: ["kimsin", "ismin ne", "adın ne"], answers: ["geyb nevıl", "pedal AI"] },
       { keywords: ["nerdesin", "nerelisin"], answers: ["ankara mamak", "erzurum", "Türk bayrağı"] },
       { keywords: ["neden", "niye", "why"], answers: ["çünkü malsın", "canım istedi diye diye 𝐒𝐈𝐆𝐌𝐀 🤫🧏‍♂️", "sanane"] },
-      { keywords: ["mal", "sg", "oe", "yü", "bırbır", "brbr", "sanane", "ayıp", "sus"], answers: ["sg oç", "oe", "piç"] }
-      { keywords: ["sensin", "anan", "annen"], answers: ["sg konuşma sensin", "annen o", "soyadın ne senin"] } 
-      { keywords: ["napcan", "napıcakszın"], answers: ["sana sokucam"] }
-      { keywords: ["terbiyesiz", "düzgün konuş", "adam ol"], answers: ["kendine bak", "aynaya bak önce", "tipine bak"] } 
+      { keywords: ["mal", "sg", "oe", "yü", "bırbır", "brbr", "sanane", "ayıp", "sus"], answers: ["sg oç", "oe", "piç"] },
+      { keywords: ["bana ne", "banane"], answers: ["bana ne olm", "sanane"] },
+      { keywords: ["sensin", "anan", "annen"], answers: ["sg konuşma sensin", "annen o", "soyadın ne senin"] },
+      { keywords: ["napcan", "napıcakszın"], answers: ["sana sokucam"] },
+      { keywords: ["terbiyesiz", "düzgün konuş", "adam ol"], answers: ["kendine bak", "aynaya bak önce", "tipine bak"] }
     ];
 
     const defaultResponses = [
@@ -204,10 +205,24 @@
     function getSmartResponse(userText) {
       const lowerInput = userText.toLowerCase().trim();
 
+      let earliestMatchIndex = Infinity;
+      let selectedGroup = null;
+
+      // Metinde geçen anahtar kelimelerin indekslerini kontrol edip en önce gelenini seçer
       for (const item of keywordResponses) {
-        if (item.keywords.some(kw => kw.length > 0 && lowerInput.includes(kw))) {
-          return item.answers[Math.floor(Math.random() * item.answers.length)];
+        for (const kw of item.keywords) {
+          if (kw.length > 0) {
+            const index = lowerInput.indexOf(kw);
+            if (index !== -1 && index < earliestMatchIndex) {
+              earliestMatchIndex = index;
+              selectedGroup = item;
+            }
+          }
         }
+      }
+
+      if (selectedGroup) {
+        return selectedGroup.answers[Math.floor(Math.random() * selectedGroup.answers.length)];
       }
 
       return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];

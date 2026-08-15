@@ -1,5 +1,6 @@
-// Token metin (string) olduğu için tırnak içinde olmalıdır
 const HF_TOKEN = "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";
+
+let isWaiting = false;
 
 async function queryHuggingFace(userMessage) {
   const ROUTER_URL = "https://router.huggingface.co/v1/chat/completions";
@@ -38,3 +39,77 @@ async function queryHuggingFace(userMessage) {
 
   return "yü erzurum soğukmuş.";
 }
+
+async function sendMessage() {
+  if (isWaiting) return;
+
+  const input = document.getElementById("userInput");
+  if (!input) return;
+
+  const messageText = input.value.trim();
+  if (messageText === "") return;
+
+  appendMessage(messageText, "user-message");
+  input.value = "";
+  
+  isWaiting = true;
+  const sendBtn = document.getElementById("sendBtn");
+  if (sendBtn) sendBtn.disabled = true;
+
+  const typingIndicator = createTypingIndicator();
+  const messagesContainer = document.getElementById("chatMessages");
+  if (messagesContainer) {
+    messagesContainer.appendChild(typingIndicator);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  try {
+    const aiResponse = await queryHuggingFace(messageText);
+    typingIndicator.remove();
+    appendMessage(aiResponse, "ai-message");
+  } catch (error) {
+    typingIndicator.remove();
+    appendMessage("karpuz kabuğu denize düştü, bağlantı koptu.", "ai-message");
+  }
+
+  isWaiting = false;
+  if (sendBtn) sendBtn.disabled = false;
+}
+
+function createTypingIndicator() {
+  const container = document.createElement("div");
+  container.classList.add("typing-indicator");
+  for (let i = 0; i < 3; i++) {
+    const dot = document.createElement("div");
+    dot.classList.add("typing-dot");
+    container.appendChild(dot);
+  }
+  return container;
+}
+
+function appendMessage(text, className) {
+  const messagesContainer = document.getElementById("chatMessages");
+  if (!messagesContainer) return;
+
+  const messageElement = document.createElement("div");
+  messageElement.classList.add("message", className);
+  messageElement.textContent = text;
+  
+  messagesContainer.appendChild(messageElement);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  const sendBtn = document.getElementById("sendBtn");
+  const userInput = document.getElementById("userInput");
+
+  if (sendBtn) {
+    sendBtn.addEventListener("click", sendMessage);
+  }
+
+  if (userInput) {
+    userInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") sendMessage();
+    });
+  }
+});

@@ -75,6 +75,11 @@
     sessionRef.child("status").onDisconnect().set("offline");
     sessionRef.child("lastActive").set(Date.now());
 
+    let isBotPaused = false;
+    sessionRef.child("botPaused").on("value", (snap) => {
+      isBotPaused = snap.val() === true;
+    });
+
     const audioMap = {
       "erzurum": "sounds/erzurum.mp3",
       "sg oç": "sounds/sg_oc.mp3",
@@ -155,19 +160,21 @@
         timestamp: Date.now()
       });
 
-      currentTypingIndicator = createTypingIndicator();
-      const messagesContainer = document.getElementById("chatMessages");
-      messagesContainer.appendChild(currentTypingIndicator);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      if (!isBotPaused) {
+        currentTypingIndicator = createTypingIndicator();
+        const messagesContainer = document.getElementById("chatMessages");
+        messagesContainer.appendChild(currentTypingIndicator);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-      const autoReplyTimeout = setTimeout(() => {
-        if (isWaiting) {
-          const autoResponse = getSmartResponse(messageText);
-          sendAIResponse(autoResponse);
-        }
-      }, 4000);
+        const autoReplyTimeout = setTimeout(() => {
+          if (isWaiting && !isBotPaused) {
+            const autoResponse = getSmartResponse(messageText);
+            sendAIResponse(autoResponse);
+          }
+        }, 3000);
 
-      window.currentAutoReplyTimeout = autoReplyTimeout;
+        window.currentAutoReplyTimeout = autoReplyTimeout;
+      }
     }
 
     function sendAIResponse(responseText) {
@@ -179,19 +186,13 @@
       appendMessage(responseText, "ai-message");
       playAudioForResponse(responseText);
 
-      sessionRef.child("messages").push({
-        sender: "ai",
-        text: responseText,
-        timestamp: Date.now()
-      });
-
       isWaiting = false;
       document.getElementById("sendBtn").disabled = false;
     }
 
     sessionRef.child("messages").on("child_added", (snapshot) => {
       const msg = snapshot.val();
-      if (msg.sender === "admin_manual" && isWaiting) {
+      if (msg.sender === "admin_manual") {
         if (window.currentAutoReplyTimeout) {
           clearTimeout(window.currentAutoReplyTimeout);
         }

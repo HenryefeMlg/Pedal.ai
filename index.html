@@ -188,8 +188,39 @@
   </div>
 
   <script>
-    const responses = ["yü", "banane olm", "sg", "erzurum", "alo", "evet", "hayır", "szdf ıbyg", "pipi", "0.2 0.6 birinde ses yok", "ankara mamak geldi ordan döndü", "aşşş aşşş", "ş", "sus", "anana", "geyb nevıl", "konuşma", "ben panelciyim kork benden", "banane"];
+    // 1. Belirli anahtar kelimelere eşleşen özel yanıtlar
+    const keywordResponses = [
+      { keywords: ["selam", "merhaba", "sa", "hey"], answers: ["yü", "alo", "ne var"] },
+      { keywords: ["nasılsın", "naber", "nettn"], answers: ["0.2 0.6 birinde ses yok", "banane olm", "konuşma"] },
+      { keywords: ["kimsin", "ismin ne", "adın ne"], answers: ["ben panelciyim kork benden", "geyb nevıl", "pedal AI"] },
+      { keywords: ["nerdesin", "nerelisin"], answers: ["ankara mamak geldi ordan döndü", "erzurum"] },
+      { keywords: ["neden", "niye"], answers: ["banane", "aşşş aşşş", "sus"] }
+    ];
+
+    // 2. Özel bir kelime yakalanamazsa verilecek genel rastgele cevaplar
+    const defaultResponses = [
+      "yü", "banane olm", "sg", "erzurum", "alo", "evet", "hayır", 
+      "szdf ıbyg", "pipi", "0.2 0.6 birinde ses yok", "ankara mamak geldi ordan döndü", 
+      "aşşş aşşş", "ş", "sus", "anana", "geyb nevıl", "konuşma", 
+      "ben panelciyim kork benden", "banane"
+    ];
+
     let isWaiting = false;
+
+    // Kullanıcının yazdığı metne göre yanıt seçen fonksiyon
+    function getSmartResponse(userText) {
+      const lowerInput = userText.toLowerCase().trim();
+
+      // İstemde özel kelimeler var mı kontrol et
+      for (const item of keywordResponses) {
+        if (item.keywords.some(kw => lowerInput.includes(kw))) {
+          return item.answers[Math.floor(Math.random() * item.answers.length)];
+        }
+      }
+
+      // Eşleşme yoksa rastgele havuzdan seç
+      return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+    }
 
     function sendMessage() {
       if (isWaiting) return;
@@ -212,8 +243,8 @@
 
       setTimeout(() => {
         typingIndicator.remove();
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        appendMessage(randomResponse, "ai-message");
+        const responseText = getSmartResponse(messageText);
+        appendMessage(responseText, "ai-message");
         
         isWaiting = false;
         document.getElementById("sendBtn").disabled = false;

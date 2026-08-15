@@ -69,12 +69,35 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    let sessionId = "user_" + Math.random().toString(36).substr(2, 9);
+    let sessionId = sessionStorage.getItem("user_session_id");
+    if (!sessionId) {
+      sessionId = "user_" + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem("user_session_id", sessionId);
+    }
     const sessionRef = database.ref("sessions/" + sessionId);
 
-    sessionRef.child("status").set("online");
-    sessionRef.child("status").onDisconnect().remove();
-    sessionRef.child("lastActive").set(Date.now());
+    // Durum Güncelleme Fonksiyonu
+    function updateStatus(status) {
+      sessionRef.child("status").set(status);
+      sessionRef.child("lastActive").set(Date.now());
+    }
+
+    updateStatus("online");
+    sessionRef.child("status").onDisconnect().set("offline");
+
+    // Düzenli Kalp Atışı (Sistem canlılık kontrolü)
+    setInterval(() => {
+      sessionRef.child("lastActive").set(Date.now());
+    }, 4000);
+
+    // Kullanıcı sekmeden ayrıldı mı veya sekmeye geri geldi mi kontrolü
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        updateStatus("away");
+      } else {
+        updateStatus("online");
+      }
+    });
 
     let isBotPaused = false;
     sessionRef.child("botPaused").on("value", (snap) => {

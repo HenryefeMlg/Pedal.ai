@@ -12,6 +12,7 @@
     .status-dot { width: 10px; height: 10px; background-color: #00e676; border-radius: 50%; display: inline-block; }
     .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     .message { max-width: 80%; padding: 10px 14px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; }
+    .message img { max-width: 100%; border-radius: 6px; display: block; margin-top: 5px; }
     .user-message { align-self: flex-end; background-color: #2962ff; color: #fff; border-bottom-right-radius: 2px; }
     .ai-message { align-self: flex-start; background-color: #2e2e38; color: #e1e1e6; border-bottom-left-radius: 2px; }
     .typing-indicator { align-self: flex-start; background-color: #2e2e38; padding: 12px 18px; border-radius: 8px; border-bottom-left-radius: 2px; display: flex; align-items: center; gap: 6px; }
@@ -19,12 +20,13 @@
     .typing-dot:nth-child(1) { animation-delay: -0.32s; }
     .typing-dot:nth-child(2) { animation-delay: -0.16s; }
     @keyframes bounce { 0%, 80%, 100% { transform: scale(0); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
-    .chat-input-area { padding: 15px; background-color: #18181b; border-top: 1px solid #2e2e38; display: flex; gap: 10px; }
+    .chat-input-area { padding: 15px; background-color: #18181b; border-top: 1px solid #2e2e38; display: flex; gap: 8px; align-items: center; }
     input[type="text"] { flex: 1; background-color: #121214; border: 1px solid #2e2e38; color: #fff; padding: 12px 15px; border-radius: 6px; outline: none; font-size: 0.95rem; }
     input[type="text"]:focus { border-color: #00e676; }
-    button { background-color: #00e676; color: #121214; border: none; padding: 0 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-    button:hover { background-color: #00c853; }
-    button:disabled { background-color: #2e2e38; color: #777; cursor: not-allowed; }
+    .file-btn { background: #2e2e38; color: #fff; border: 1px solid #3e3e4a; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+    .file-btn:hover { background: #3e3e4a; }
+    button.send-btn { background-color: #00e676; color: #121214; border: none; padding: 12px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+    button.send-btn:hover { background-color: #00c853; }
   </style>
 </head>
 <body>
@@ -40,8 +42,12 @@
     </div>
 
     <div class="chat-input-area">
+      <label class="file-btn" title="Fotoğraf Gönder">
+        📷
+        <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleUserImage(this)">
+      </label>
       <input type="text" id="userInput" placeholder="Bir şeyler yaz..." autocomplete="off">
-      <button id="sendBtn">Gönder</button>
+      <button class="send-btn" id="sendBtn">Gönder</button>
     </div>
   </div>
 
@@ -63,38 +69,17 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Her yeni giriş/sayfa yenilemede yepyeni bir oturum kimliği oluşturulur
     let sessionId = "user_" + Math.random().toString(36).substr(2, 9);
     const sessionRef = database.ref("sessions/" + sessionId);
 
     sessionRef.child("status").set("online");
-    sessionRef.child("status").onDisconnect().remove(); // Kullanıcı çıkınca veritabanından temizlenir
+    sessionRef.child("status").onDisconnect().remove();
     sessionRef.child("lastActive").set(Date.now());
 
     let isBotPaused = false;
     sessionRef.child("botPaused").on("value", (snap) => {
       isBotPaused = snap.val() === true;
     });
-
-    const audioMap = {
-      "erzurum": "sounds/erzurum.mp3",
-      "sg oç": "sounds/sg_oc.mp3",
-      "sus": "sounds/sus.mp3",
-      "alo": "sounds/alo.mp3"
-    };
-
-    const keywordResponses = [
-      { keywords: ["selam", "merhaba", "sa", "hey", "alo", "hi"], answers: ["yü", "alo", "ne var", "noldu", "🗿", "🕋ﷲ﷽ 🕋"] },
-      { keywords: ["nasılsın", "naber", "nettn"], answers: ["iyiyim", "annen", "konuşma", "🕋 ﷲ ﷽"] },
-      { keywords: ["kimsin", "ismin ne", "adın ne"], answers: ["geyb nevıl", "pedal AI"] },
-      { keywords: ["nerdesin", "nerelisin"], answers: ["ankara mamak", "erzurum", "Türk bayrağı"] },
-      { keywords: ["neden", "niye", "why"], answers: ["çünkü malsın", "canım istedi diye diye 𝐒𝐈𝐆𝐌𝐀 🤫🧏‍♂️", "sanane"] },
-      { keywords: ["mal", "sg", "oe", "yü", "bırbır", "brbr", "sanane", "ayıp", "sus"], answers: ["sg oç", "oe", "piç"] },
-      { keywords: ["bana ne", "banane"], answers: ["bana ne olm", "sanane"] },
-      { keywords: ["sensin", "anan", "annen"], answers: ["sg konuşma sensin", "annen o", "soyadın ne senin"] },
-      { keywords: ["napcan", "napıcakszın"], answers: ["sana sokucam"] },
-      { keywords: ["terbiyesiz", "düzgün konuş", "adam ol"], answers: ["kendine bak", "aynaya bak önce", "tipine bak"] }
-    ];
 
     const defaultResponses = [
       "yü", "banane olm", "sg", "erzurum", "alo", "evet", "hayır", 
@@ -105,35 +90,8 @@
 
     let currentTypingIndicator = null;
 
-    function getSmartResponse(userText) {
-      const lowerInput = userText.toLowerCase().trim();
-      let earliestMatchIndex = Infinity;
-      let selectedGroup = null;
-
-      for (const item of keywordResponses) {
-        for (const kw of item.keywords) {
-          if (kw.length > 0) {
-            const index = lowerInput.indexOf(kw);
-            if (index !== -1 && index < earliestMatchIndex) {
-              earliestMatchIndex = index;
-              selectedGroup = item;
-            }
-          }
-        }
-      }
-
-      if (selectedGroup) {
-        return selectedGroup.answers[Math.floor(Math.random() * selectedGroup.answers.length)];
-      }
-
+    function getRandomResponse() {
       return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-    }
-
-    function playAudioForResponse(response) {
-      if (audioMap[response]) {
-        const audio = new Audio(audioMap[response]);
-        audio.play().catch(e => console.log("Ses çalınamadı:", e));
-      }
     }
 
     function sendMessage() {
@@ -141,15 +99,42 @@
       const messageText = input.value.trim();
       if (messageText === "") return;
 
-      appendMessage(messageText, "user-message");
+      appendMessage(messageText, "user-message", "text");
       input.value = "";
 
       sessionRef.child("messages").push({
         sender: "user",
+        type: "text",
         text: messageText,
         timestamp: Date.now()
       });
 
+      triggerBotReply();
+    }
+
+    function handleUserImage(fileInput) {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Img = e.target.result;
+        appendMessage(base64Img, "user-message", "image");
+
+        sessionRef.child("messages").push({
+          sender: "user",
+          type: "image",
+          text: base64Img,
+          timestamp: Date.now()
+        });
+
+        triggerBotReply();
+      };
+      reader.readAsDataURL(file);
+      fileInput.value = "";
+    }
+
+    function triggerBotReply() {
       if (isBotPaused) return;
 
       currentTypingIndicator = createTypingIndicator();
@@ -163,10 +148,11 @@
 
       window.currentAutoReplyTimeout = setTimeout(() => {
         if (!isBotPaused) {
-          const autoResponse = getSmartResponse(messageText);
-          showAIResponse(autoResponse);
+          const autoResponse = getRandomResponse();
+          showAIResponse(autoResponse, "text");
           sessionRef.child("messages").push({
             sender: "ai",
+            type: "text",
             text: autoResponse,
             timestamp: Date.now()
           });
@@ -177,13 +163,12 @@
       }, 3000);
     }
 
-    function showAIResponse(responseText) {
+    function showAIResponse(content, type) {
       if (currentTypingIndicator) {
         currentTypingIndicator.remove();
         currentTypingIndicator = null;
       }
-      appendMessage(responseText, "ai-message");
-      playAudioForResponse(responseText);
+      appendMessage(content, "ai-message", type);
     }
 
     sessionRef.child("messages").on("child_added", (snapshot) => {
@@ -192,7 +177,7 @@
         if (window.currentAutoReplyTimeout) {
           clearTimeout(window.currentAutoReplyTimeout);
         }
-        showAIResponse(msg.text);
+        showAIResponse(msg.text, msg.type || "text");
       }
     });
 
@@ -207,11 +192,19 @@
       return container;
     }
 
-    function appendMessage(text, className) {
+    function appendMessage(content, className, type = "text") {
       const messagesContainer = document.getElementById("chatMessages");
       const messageElement = document.createElement("div");
       messageElement.classList.add("message", className);
-      messageElement.textContent = text;
+
+      if (type === "image") {
+        const img = document.createElement("img");
+        img.src = content;
+        messageElement.appendChild(img);
+      } else {
+        messageElement.textContent = content;
+      }
+
       messagesContainer.appendChild(messageElement);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }

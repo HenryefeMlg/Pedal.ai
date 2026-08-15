@@ -3,10 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pedal AI - Gerçek Üretken YZ</title>
-  
-  <!-- TensorFlow.js Kütüphanesi -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <title>Pedal AI - Hugging Face Powered</title>
 
   <style>
     * {
@@ -60,13 +57,9 @@
     .status-dot {
       width: 10px;
       height: 10px;
-      background-color: #ff9800;
+      background-color: #00e676;
       border-radius: 50%;
       display: inline-block;
-    }
-
-    .status-dot.ready {
-      background-color: #00e676;
     }
 
     .header-logo {
@@ -105,15 +98,6 @@
       background-color: #2e2e38;
       color: #e1e1e6;
       border-bottom-left-radius: 2px;
-    }
-
-    .system-status {
-      align-self: center;
-      font-size: 0.8rem;
-      color: #888;
-      background-color: #18181b;
-      padding: 4px 10px;
-      border-radius: 12px;
     }
 
     /* 3 Top Animasyonu */
@@ -191,24 +175,22 @@
   <div class="chat-container">
     <div class="chat-header">
       <div class="header-left">
-        <span class="status-dot" id="statusDot"></span>
+        <span class="status-dot"></span>
         Pedal AI (v1.0)
       </div>
       <img src="shimano-pd-gr500-platform-pedal-civili-bmx-dh-epdgr500l-kcm67744903-1-d6b1b3f743f24c92a40179cf26667d85-removebg-preview.png" alt="Pedal AI Logo" class="header-logo">
     </div>
     
     <div class="chat-messages" id="chatMessages">
-      <div class="system-status" id="systemStatus">Harf Üreteci Eğitiliyor...</div>
-      <div class="message ai-message">Ne var ne istiyon? Sıfırdan harf harf kelime üreteceğim.</div>
+      <div class="message ai-message">Ne var ne istiyon? Hugging Face yapay zekamla saçmalamaya hazırım.</div>
     </div>
 
     <div class="chat-input-area">
-      <input type="text" id="userInput" placeholder="Bir şeyler yaz..." autocomplete="off" disabled>
-      <button id="sendBtn" onclick="sendMessage()" disabled>Gönder</button>
+      <input type="text" id="userInput" placeholder="Bir şeyler yaz..." autocomplete="off">
+      <button id="sendBtn" onclick="sendMessage()">Gönder</button>
     </div>
   </div>
 
-  <!-- YZ Motorumuz -->
   <script src="script.js"></script>
 
 </body>
